@@ -1,0 +1,168 @@
+<html>
+    <head>
+        <title>NateWorks Snake</title>
+    </head>
+    <body>
+        <h1 id='maintitle'>NateWorks Snake</h1>
+        <script>
+            //CONST
+            var CANV_WIDTH = 500;
+            var CANV_HEIGHT = 500;
+            var PIXEL_SIZE = 25;
+            var MAX_FOOD = 5;
+
+            //image
+            var bgimg = new Image();
+            bgimg.src = "snakeBG.png";
+
+            //VAR
+            var head = {
+                x: 250,
+                y: 250,
+                direction: "up",
+                isMoving: false
+            };
+            var segments = [];
+            var food = [];
+            var foodxs = [];
+            var foodys = [];
+
+            //SETUP
+            var canvas = document.createElement('canvas');
+            canvas.width = CANV_WIDTH;
+            canvas.height = CANV_HEIGHT;
+            document.body.appendChild(canvas);
+            var c = canvas.getContext('2d');
+            window.addEventListener('load', start);
+            function start() {
+                window.requestAnimationFrame(mainloop);
+            }
+            //INPUT
+            window.addEventListener("keydown", keyDown);
+            function keyDown() {
+                
+                if (event.keyCode == 38) {
+                    head.isMoving = true;
+                    head.direction = "up";
+                } else if (event.keyCode == 40) {
+                    head.isMoving = true;
+                    head.direction = "down";
+                } else if (event.keyCode == 37) {
+                    head.isMoving = true;
+                    head.direction = "left";
+                } else if (event.keyCode == 39) {
+                    head.isMoving = true;
+                    head.direction = "right";
+                }
+            }
+            //MAIN
+            //var tick = 0;
+            function mainloop() {
+                update();
+                draw();
+                window.setTimeout(() => {
+                    window.requestAnimationFrame(mainloop)
+                }, 250);
+            }
+            //UPDATE
+            function update() {
+                //wall die
+                if (head.x < 0*PIXEL_SIZE || head.x > 19*PIXEL_SIZE || head.y < 0* PIXEL_SIZE || head.y > 19*PIXEL_SIZE) {
+                    head.x = 10*PIXEL_SIZE;
+                    head.y = 10*PIXEL_SIZE;
+                    segments = [];
+                    food = [];
+                    head.isMoving = false;
+                }
+
+                //move rest of body
+                for (var i = segments.length-1; i > 0; i--) {
+                    segments[i].x = segments[i-1].x;
+                    segments[i].y = segments[i-1].y;
+                }
+
+                //hit self
+                for (var i = 0; i < segments.length; i++) {
+                    if (head.x == segments[i].x && head.y == segments[i].y) {
+                        head.x = 10*PIXEL_SIZE;
+                        head.y = 10*PIXEL_SIZE;
+                        segments = [];
+                        food = [];
+                        head.isMoving = false;
+                    }
+                }
+
+                //move seg 1
+                if (segments.length > 0) {
+                    segments[0].x = head.x;
+                    segments[0].y = head.y;
+                }
+
+                //move head
+                if (head.isMoving) {
+                    if (head.direction == "up") {
+                        head.y -= PIXEL_SIZE;
+                    } else if (head.direction == "down") {
+                        head.y += PIXEL_SIZE;
+                    } else if (head.direction == "left") {
+                        head.x -= PIXEL_SIZE;
+                    } else if (head.direction == "right") {
+                        head.x += PIXEL_SIZE;
+                    }
+                }
+
+                //add food
+                while (food.length < MAX_FOOD) {
+                    var newx = Math.round(Math.random()*19)*PIXEL_SIZE;
+                    var newy = Math.round(Math.random()*19)*PIXEL_SIZE;
+                    food.push({
+                        x: newx,
+                        y: newy
+                    });
+                }
+
+                //eat food
+                for (var i = 0; i < food.length; i++) {
+                    if (head.x == food[i].x && head.y == food[i].y) {
+                        food.splice(i, 1);
+                        segments.push({
+                            x: 0,
+                            y: 0,
+                            new: true
+                        });
+                    }
+                }
+                
+            }
+            //DRAW
+            function draw() {
+                //bg
+                c.drawImage(bgimg, 0, 0, CANV_WIDTH, CANV_HEIGHT);
+                c.strokeStyle = "black";
+                c.strokeRect(0, 0, CANV_WIDTH, CANV_HEIGHT);
+
+                //food
+                c.fillStyle = "orange";
+                for (var i = 0; i < food.length; i++) {
+                    c.fillRect(food[i].x, food[i].y, PIXEL_SIZE, PIXEL_SIZE);
+                }
+
+                //snake
+                c.fillStyle = "red";
+                c.strokeStyle = "black";
+                c.fillRect(head.x, head.y, PIXEL_SIZE, PIXEL_SIZE);
+                c.strokeRect(head.x, head.y, PIXEL_SIZE, PIXEL_SIZE);
+
+                c.fillStyle = `rgb(0, 255, 0)`;
+                for (var i = 0; i < segments.length; i++) {
+                    if (!segments[i].new) {
+                        c.fillRect(segments[i].x, segments[i].y, PIXEL_SIZE, PIXEL_SIZE);
+                        c.strokeRect(segments[i].x, segments[i].y, PIXEL_SIZE, PIXEL_SIZE);
+                        
+                    }
+                    segments[i].new = false;
+                }
+            }
+        </script>
+    </body>
+</html>
